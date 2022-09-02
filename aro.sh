@@ -52,7 +52,7 @@ cd $NAM1.$NAM2
 
 # Choose a pack
 
- PACK=/home/gmap/mrpm/marguina/pack/48t3_cpg_drv-.01.MIMPIIFC1805.2y
+ PACK=/home/gmap/mrpm/marguina/pack/48t3_cpg_drv+.01.MIMPIIFC1805.2y
 
 # Copy data to $TMPDIR
 
