@@ -1,0 +1,10 @@
+.g*
+.vimpack
+src
+sys
+bin
+lib
+.logfile
+slurm-*.out
+ics_*
+
