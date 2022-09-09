@@ -7,4 +7,4 @@ lib
 .logfile
 slurm-*.out
 ics_*
-
+*.svg

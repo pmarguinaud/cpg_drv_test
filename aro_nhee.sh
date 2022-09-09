@@ -37,15 +37,13 @@ mkdir -p $TMPDIR
 
 cd $TMPDIR
 
-for NAM1 in LTWOTL=T.ARO 
+for NAM1 in LTWOTL=T.ARO LTWOTL=F.ARO HAIL SPNG LTENC ARO.LPC_FULL LTWOTL=T.ARO.AERO ILSRG=NOADV
 do
 
-for NAM2 in NHEE 
-do
+NAM2=NHEE
 
 mkdir -p $NAM1.$NAM2
 cd $NAM1.$NAM2
-
 
 # Choose your test case resolution
 
@@ -53,7 +51,7 @@ cd $NAM1.$NAM2
 
 # Choose a pack
 
- PACK=/home/gmap/mrpm/marguina/pack/48t3_cpg_drv-.01.MIMPIIFC1805.2y
+ PACK=/home/gmap/mrpm/marguina/pack/48t3_cpg_drv+.01.MIMPIIFC1805.2y
 
 # Copy data to $TMPDIR
 
@@ -215,13 +213,6 @@ xpnam --delta="
 &NAMDIM
   NPROMA=-4,
 /
-&NAMRES
-  NRESTS(0)=1,
-  NRESTS(1)=3,
-/
-&NAMCT1
-  N1RES=1,
-/
 " --inplace fort.4
 fi
 
@@ -233,8 +224,6 @@ cat fort.4
 
 pack=$PACK
 
-cd /scratch/work/marguina/tmp/aro.25792973/LTWOTL=T.ARO.NHEE
-
 /opt/softs/mpiauto/mpiauto --verbose --wrap --wrap-stdeo --nouse-slurm-mpi --prefix-mpirun '/usr/bin/time -f "time=%e"' \
     --nnp $NTASK_FC --nn $NNODE_FC --openmp $NOPMP_FC -- $pack/bin/MASTERODB \
  -- --nnp $NTASK_IO --nn $NNODE_IO --openmp $NOPMP_IO -- $pack/bin/MASTERODB 
@@ -245,7 +234,6 @@ diffNODE.001_01 --gpnorms AERO.001 NODE.001_01 $pack/ref.48t3_gprcp.01.MIMPIIFC1
 
 cd ..
 
-done
 done
 
 

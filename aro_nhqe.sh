@@ -40,8 +40,7 @@ cd $TMPDIR
 for NAM1 in LTWOTL=T.ARO LTWOTL=F.ARO HAIL SPNG LTENC ARO.LPC_FULL LTWOTL=T.ARO.AERO ILSRG=NOADV
 do
 
-for NAM2 in NHEE NHQE
-do
+NAM2=NHQE
 
 mkdir -p $NAM1.$NAM2
 cd $NAM1.$NAM2
@@ -235,7 +234,6 @@ diffNODE.001_01 --gpnorms AERO.001 NODE.001_01 $pack/ref.48t3_gprcp.01.MIMPIIFC1
 
 cd ..
 
-done
 done
 
 
