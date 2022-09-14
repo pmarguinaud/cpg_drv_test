@@ -34,6 +34,12 @@ sub wanted
 
 my @view = do { my $fh = 'FileHandle'->new ("<.gmkview"); my @v = <$fh>; chomp for (@v); @v };
 
+if (-f 'f2f.pl')
+  {
+    %f2f = %{ do ('./f2f.pl') };
+    pop (@view) while (scalar (@view) > 1);
+  }
+
 for my $view (@view)
   {
     &find ({wanted => \&wanted, no_chdir => 1}, "src/$view/");
