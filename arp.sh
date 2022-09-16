@@ -144,7 +144,7 @@ xpnam --delta="
 &NAMSPP
 /
 &NAMFA
-  NVGRIB=0,
+  NVGRIB=123,
 /
 &NAMPERTPAR
 /
