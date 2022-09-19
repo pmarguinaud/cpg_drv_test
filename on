@@ -7,4 +7,5 @@ do
   d=$(dirname $f)
   f=$(basename $f .new)
   mv $d/$f.new $d/$f
+  touch $d/$f
 done
