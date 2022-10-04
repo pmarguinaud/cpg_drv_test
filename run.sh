@@ -5,8 +5,6 @@ set -x
 
 ./ics_masterodb
 
-cd /home/gmap/mrpm/marguina/pack/48t3_gprcp.01.MIMPIIFC1805.2y
+cd /home/gmap/mrpm/marguina/mitraille/cy48t2/cy48t3_cpg_drv+xfu_named
+sbatch aro.sh
 
-./ics_masterodb
-
-sbatch aro_aero2.sh

@@ -17,6 +17,8 @@ my $d2 = &Fxtran::fxtran (location => $F90_2, fopts => [qw (-line-length 800)]);
 my %k = qw (UVH 0 XYB 1 RCP 1 CTY 0);
 
 my @dummy = &F ('//dummy-arg-LT/arg-N', $d2);
+
+
 my @remove = map { 0 } @dummy;
 
 my ($name) = &F ('//subroutine-N', $d2, 1);
@@ -31,6 +33,9 @@ for my $call (&F ('.//call-stmt[string(procedure-designator)="?"]', $name, $d1))
       {
 #       next if ($dummy[$i]->textContent =~ m/^Y/o);
         my $actual = $actual[$i]->textContent;
+
+#print &Dumper ([$actual, $dummy[$i]->textContent]);
+
         next if ($actual =~ m/\(/o);
 #       next unless ($actual =~ m/^(?:YDCPG_DYN0|YDCPG_DYN9|YDCPG_PHY0|YDCPG_PHY9|YDCPG_TND|YDCPG_MISC)%/o);
 #       next unless ($actual =~ m/^(?:YLAPLPAR%)/o);
@@ -42,10 +47,13 @@ for my $call (&F ('.//call-stmt[string(procedure-designator)="?"]', $name, $d1))
 #       next unless ($actual =~ m/^(?:YDCPG_DYN|YDCPG_PHY|YDVARS)/goms);
 #       next unless ($actual =~ m/^(?:YDCPG_DIM|YDMF_PHYS|YDCPG_MISC)/goms);
 #       next unless ($actual =~ m/^(?:YDCPG_OPTS)/goms);
-        next unless ($actual =~ m/^(?:YDCPG_OPTS|YDCPG_BNDS)%/goms);
+#       next unless ($actual =~ m/^(?:YDCPG_OPTS|YDCPG_BNDS)%/goms);
 #       next unless ($actual =~ m/^(?:YDMF_PHYS_OUT|YDCPG_MISC|YDMF_PHYS_SURF|YDCPG_DYN0|YDVARS)%/goms);
+#       next unless ($actual =~ m/^(?:YDCPG_DYN0|YDCPG_TNDSI_DDH|YDCPG_TNDHD_DDH|YDCPG_TND)%/goms);
 #       next unless ($actual =~ m/^(?:YDVARS)/goms);
 #       next unless ($actual =~ m/^(?:YDCPG_BNDS|YDCPG_OPTS|YDMF_PHYS_BASE_STATE|YDCPG_MISC|YDMF_PHYS_SURF|YDMF_PHYS)/goms);
+#       next unless ($actual =~ m/^(?:YDCPG_DYN0|YDCPG_BNDS|YDCPG_OPTS|YDVARS|YDMF_PHYS_OUT|YDMF_PHYS_SURF)%/goms);
+        next unless ($actual =~ m/^(?:YDCPG_SLMISC)%/goms);
         $actual =~ s/^YL/YD/o;
         $d2a{$dummy[$i]->textContent} = $actual;
         if ($actual[$i]->parentNode->nextSibling)
