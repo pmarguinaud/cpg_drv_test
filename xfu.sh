@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --export=NONE
-#SBATCH --job-name=arp
+#SBATCH --job-name=xfu
 #SBATCH --nodes=1
 #SBATCH --time=00:05:00
 #SBATCH --exclusive
