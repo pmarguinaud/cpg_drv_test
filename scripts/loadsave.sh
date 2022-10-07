@@ -1,9 +1,21 @@
 #!/bin/bash
 
 set -x
-rm -f save_*.F90 *.xml
 
-mkdir -p tmp src/local/arpifs/module_util
+function resolve ()
+{
+  f=$1
+  for view in $(cat .gmkview)
+  do
+    g="src/$view/$f"
+    if [ -f $g ]
+    then
+      echo $g
+      break
+    fi
+  done
+}
+
 set +x
 
 for f in \
@@ -146,29 +158,18 @@ arpifs/module/yomvsleta.F90 \
 arpifs/module/yomvsplip.F90 \
 arpifs/module/yoeaeratm.F90 \
 arpifs/module/yoe_aerodiag.F90 \
-arpifs/module/yom_ygfl.F90 \
-arpifs/module/yom_ygfl.F90 \
+arpifs/module/yomdyna.F90 \
 arpifs/module/yom_ygfl.F90
 do
   for view in $(cat .gmkview)
   do
     if [ -f "src/$view/$f" ]
     then
-    b=$(basename $f)
     set -x
-    cp src/$view/$f tmp/$b
-#      --skip GEOMETRY%YRCSGEOM_NB \
-#      --skip GEOMETRY%YRGSGEOM_NB \
     ./scripts/loadsave.pl \
-       --skip TYPE_GFL_COMP%PREVIOUS \
-       --skip MODEL_PHYSICS_STOCHAST_TYPE%YR_RANDOM_STREAMS \
-       --skip TEPHY%YSURF \
-       --skip TRADIATION%RAD_CONFIG \
-       --skip TECUCONVCA%YD_RANDOM_STREAM_CA \
-       --skip GEOMETRY%YRCSGEOMAD_NB \
-       --skip GEOMETRY%YRGSGEOMAD_NB \
-       --dir src/local/arpifs/module_util \
-       --save --load --size --copy tmp/$b
+       --skip-components TYPE_GFL_COMP%PREVIOUS,MODEL_PHYSICS_STOCHAST_TYPE%YR_RANDOM_STREAMS,TEPHY%YSURF,TRADIATION%RAD_CONFIG,TECUCONVCA%YD_RANDOM_STREAM_CA,GEOMETRY%YRCSGEOMAD_NB,GEOMETRY%YRGSGEOMAD_NB \
+       --dir src/local/arpifs/module \
+       --save --load $(resolve $f)
     set +x
     break
     fi
