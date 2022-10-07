@@ -7,11 +7,14 @@ use lib $Bin;
 use Fxtran;
 use Getopt::Long;
 use File::Path;
+use File::Spec;
 
 
 sub process_decl
 {
-  my ($opts, $en_decl, $sname, $prefix, $BODY_SAVE, $BODY_LOAD, $BODY_COPY, $BODY_SIZE, $U, $J, $L, $B) = @_;
+  my ($opts, $en_decl, $sname, $prefix, 
+      $BODY_SAVE, $BODY_LOAD, $BODY_COPY, $BODY_SIZE, 
+      $U, $J, $L, $B, $en_decl_hash) = @_;
 
   my (@BODY_SAVE, @BODY_LOAD, @BODY_COPY, @BODY_SIZE);
   my (%U, %J, %L, %B);
@@ -20,13 +23,13 @@ sub process_decl
 
   return if ($stmt->nodeName eq 'final-stmt');
 
-  my %attr = map { ($_, 1) } &f ('.//f:attribute/f:attribute-N/text ()', $stmt);
+  my %attr = map { ($_, 1) } &F ('.//attribute/attribute-N/text()', $stmt);
 
   return if ($attr{PARAMETER});
 
-  my ($name) = &f ('.//f:EN-N/f:N/f:n/text ()', $en_decl, 1);
+  my ($name) = &F ('.//EN-N/N/n/text()', $en_decl, 1);
   
-  my $skip = grep { "$sname$name" eq $_ } @{ $opts->{skip} };
+  my $skip = $opts->{'skip-components'}->($sname, $name, \%attr, $en_decl_hash);
 
   if ($skip)
     {
@@ -37,21 +40,21 @@ sub process_decl
       goto RETURN;
     }
   
+  my $dbg = ($sname eq 'VARIABLE_BASE%') && ($name eq 'FINAL');
 
-  my ($tspec) = &f ('./f:_T-spec_', $stmt);
+  my ($tspec) = &F ('./_T-spec_', $stmt);
 
   die $stmt->toString unless ($tspec);
 
-  return if (uc ($tspec->textContent) eq 'PROCEDURE');
+  return if (uc ($tspec->textContent) =~ m/^PROCEDURE/o);
 
-
-  my ($intrinsic) = &f ('./f:intrinsic-T-spec', $tspec);
-  my ($tname) = &f ('./f:derived-T-spec/f:T-N/f:N/f:n/text ()', $tspec);
+  my ($intrinsic) = &F ('./intrinsic-T-spec', $tspec);
+  my ($tname) = &F ('./derived-T-spec/T-N/N/n/text()', $tspec);
   
   $tname && ($U{$tname} = 1);
   
   
-  my @ss = &f ('./f:array-spec/f:shape-spec-LT/f:shape-spec', $en_decl, 1);
+  my @ss = &F ('./array-spec/shape-spec-LT/shape-spec', $en_decl, 1);
 
   unless (@ss)
     {
@@ -85,7 +88,7 @@ sub process_decl
         }
       else
         {
-          push @BODY_LOAD, "ALLOCATE ($prefix$name)\n";
+          push @BODY_LOAD, "ALLOCATE ($prefix$name)\n" unless ($tname && grep { $_ eq $tname } @{ $opts->{'no-allocate'} });
         }
       push @BODY_COPY, "!\$acc enter data create ($prefix$name)\n";
       push @BODY_COPY, "!\$acc update device ($prefix$name)\n",
@@ -205,19 +208,27 @@ sub process_types
 {
   my ($doc, $opts) = @_;
 
-  my ($mod) = &f ('.//f:module-stmt/f:module-N/f:N/f:n/text ()', $doc);
+  my %code;
+  my @file;
+
+  my ($mod) = &F ('.//module-stmt/module-N/N/n/text()', $doc);
   
-  my @tconst = &f ('.//f:T-construct', $doc);
+  my @tconst = &F ('.//T-construct', $doc);
   
   for my $tconst (@tconst)
     {
+      my ($name) = &F ('.//T-stmt/T-N/N/n/text()', $tconst, 1);
+      my $tname = $name;
+  
+      next if ($opts->{'skip-types'}->($name));
+
+      my ($abstract) = &F ('./T-stmt/attribute[string(attribute-N)="ABSTRACT"]', $tconst);
+      my ($extends) = &F ('./T-stmt/attribute[string(attribute-N)="EXTENDS"]/N/n/text()', $tconst);
+
       my ($INTERFACE_SAVE, $CONTAINS_SAVE) = ('', '');
       my ($INTERFACE_LOAD, $CONTAINS_LOAD) = ('', '');
       my ($INTERFACE_COPY, $CONTAINS_COPY) = ('', '');
       my ($INTERFACE_SIZE, $CONTAINS_SIZE) = ('', '');
-  
-      my ($name) = &f ('.//f:T-stmt/f:T-N/f:N/f:n/text ()', $tconst, 1);
-      my $tname = $name;
   
   
       $INTERFACE_SAVE .= "MODULE PROCEDURE SAVE_$name\n";
@@ -237,20 +248,47 @@ sub process_types
                        "ENDIF\n";
                        
       push @BODY_SIZE, 'KSIZE = 0';
-     
+
+      if ($extends)
+        {
+          for (\@BODY_SAVE, \@BODY_LOAD, \@BODY_COPY, \@BODY_SIZE)
+            {
+              push @$_, "YLSUPER => YD\n";
+            }
+          push @BODY_SAVE, "CALL SAVE_$extends (KLUN, YLSUPER)\n";
+          push @BODY_LOAD, "CALL LOAD_$extends (KLUN, YLSUPER)\n";
+          push @BODY_COPY, "CALL COPY_$extends (YLSUPER, LDCREATED=.TRUE.)\n";
+          push @BODY_SIZE, "KSIZE = KSIZE + SIZE_$extends (YLSUPER, CDPATH, LDPRINT)\n";
+        }
     
       my (%U, %J, %L, %B);
-  
-      my @en_decl = &f ('.//f:EN-decl', $tconst);
+
+      my @en_decl = &F ('.//EN-decl', $tconst);
+      my %en_decl;
       for my $en_decl (@en_decl)
         {
-          &process_decl ($opts, $en_decl, "$tname%", 'YD%', \@BODY_SAVE, \@BODY_LOAD, \@BODY_COPY, \@BODY_SIZE, \%U, \%J, \%L, \%B);
+          my ($name) = &F ('.//EN-N/N/n/text()', $en_decl, 1);
+          $en_decl{$name} = $en_decl;
+        }
+      for my $en_decl (@en_decl)
+        {
+          &process_decl ($opts, $en_decl, "$tname%", 'YD%', 
+                         \@BODY_SAVE, \@BODY_LOAD, \@BODY_COPY, \@BODY_SIZE, 
+                         \%U, \%J, \%L, \%B, \%en_decl);
         }
   
       my $DECL_SAVE = '';
       my $DECL_LOAD = '';
       my $DECL_COPY = "LOGICAL :: LLCREATED\n";
       my $DECL_SIZE = "INTEGER*8 :: ISIZE, JSIZE\n";
+
+      if ($extends)
+        {
+          for ($DECL_SAVE, $DECL_LOAD, $DECL_COPY, $DECL_SIZE)
+            {
+              $_ = "CLASS ($extends), POINTER :: YLSUPER\n";
+            }
+        }
   
       if (%J)
         {
@@ -271,22 +309,38 @@ sub process_types
           $DECL_SIZE .= "LOGICAL :: " . join (', ', map { "L$_" } sort keys (%L)) . "\n";
         }
   
-      my $USE_SAVE = join ('', map { "USE UTIL_${_}_MOD\n" } grep { $_ ne $name } sort keys (%U));
-      my $USE_LOAD = join ('', map { "USE UTIL_${_}_MOD\n" } grep { $_ ne $name } sort keys (%U));
-      my $USE_COPY = join ('', map { "USE UTIL_${_}_MOD\n" } grep { $_ ne $name } sort keys (%U));
-      my $USE_SIZE = join ('', map { "USE UTIL_${_}_MOD\n" } grep { $_ ne $name } sort keys (%U));
+      my @U = map { "UTIL_${_}_MOD" } sort keys (%U);
+      @U = map { (exists ($opts->{'module-map'}{$_}) ? $opts->{'module-map'}{$_} : $_) } @U;
+      %U = map { ($_, 1) } @U;
+      @U = sort keys (%U);
+
+      my $USE_SAVE = join ('', map { "USE ${_}\n" } grep { $_ ne $name } @U);
+      my $USE_LOAD = join ('', map { "USE ${_}\n" } grep { $_ ne $name } @U);
+      my $USE_COPY = join ('', map { "USE ${_}\n" } grep { $_ ne $name } @U);
+      my $USE_SIZE = join ('', map { "USE ${_}\n" } grep { $_ ne $name } @U);
   
+
+      if ($extends)
+        {
+          $USE_SAVE .= "USE UTIL_${extends}_MOD, ONLY : $extends, SAVE_$extends\n";
+          $USE_LOAD .= "USE UTIL_${extends}_MOD, ONLY : $extends, LOAD_$extends\n";
+          $USE_COPY .= "USE UTIL_${extends}_MOD, ONLY : $extends, COPY_$extends\n";
+          $USE_SIZE .= "USE UTIL_${extends}_MOD, ONLY : $extends, SIZE_$extends\n";
+        }
+
       for ($USE_SAVE, $USE_SAVE, $USE_COPY, $USE_SIZE, $DECL_SAVE, $DECL_LOAD)
         {
           chomp ($_);
         }
   
+      my $type = $abstract ? 'CLASS' : 'TYPE';
+
       $CONTAINS_SAVE .= << "EOF";
 SUBROUTINE SAVE_$name (KLUN, YD)
 $USE_SAVE
 IMPLICIT NONE
 INTEGER, INTENT (IN) :: KLUN
-TYPE ($name), INTENT (IN) :: YD
+$type ($name), INTENT (IN), TARGET :: YD
 EOF
 
       $CONTAINS_LOAD .= << "EOF";
@@ -294,14 +348,14 @@ SUBROUTINE LOAD_$name (KLUN, YD)
 $USE_LOAD
 IMPLICIT NONE
 INTEGER, INTENT (IN) :: KLUN
-TYPE ($name), INTENT (OUT) :: YD
+$type ($name), INTENT (OUT), TARGET :: YD
 EOF
 
       $CONTAINS_COPY .= << "EOF";
 SUBROUTINE COPY_$name (YD, LDCREATED)
 $USE_COPY
 IMPLICIT NONE
-TYPE ($name), INTENT (IN) :: YD
+$type ($name), INTENT (IN), TARGET :: YD
 LOGICAL, OPTIONAL, INTENT (IN) :: LDCREATED
 EOF
 
@@ -309,7 +363,7 @@ EOF
 INTEGER*8 FUNCTION SIZE_$name (YD, CDPATH, LDPRINT) RESULT (KSIZE)
 $USE_SIZE
 IMPLICIT NONE
-TYPE ($name),     INTENT (IN) :: YD
+$type ($name),     INTENT (IN), TARGET :: YD
 CHARACTER(LEN=*), INTENT (IN) :: CDPATH
 LOGICAL,          INTENT (IN) :: LDPRINT
 EOF
@@ -341,13 +395,23 @@ EOF
       $INTERFACE_LOAD = "INTERFACE LOAD\n$INTERFACE_LOAD\nEND INTERFACE\n";
       $INTERFACE_COPY = "INTERFACE COPY\n$INTERFACE_COPY\nEND INTERFACE\n";
       $INTERFACE_SIZE = "INTERFACE SIZE\n$INTERFACE_SIZE\nEND INTERFACE\n";
+
+      if ($abstract)
+        {
+          $INTERFACE_SAVE = "";
+          $INTERFACE_LOAD = "";
+          $INTERFACE_COPY = "";
+          $INTERFACE_SIZE = "";
+        }
   
       $INTERFACE_SAVE = '' unless ($opts->{save});
       $INTERFACE_LOAD = '' unless ($opts->{load});
       $INTERFACE_COPY = '' unless ($opts->{copy});
       $INTERFACE_SIZE = '' unless ($opts->{size});
 
-      &w ("$opts->{dir}/util_${n}_mod.F90", << "EOF");
+      push @file, "util_${n}_mod.F90";
+
+      $code{"util_${n}_mod.F90"} = << "EOF";
 MODULE UTIL_${name}_MOD
 
 USE $mod, ONLY : $name
@@ -368,17 +432,114 @@ END MODULE
 EOF
 
     }
+
+  if ($opts->{out})
+    {
+      &w ("$opts->{dir}/$opts->{out}", join ('', map { $code{$_} } @file));
+    }
+  else
+    {
+      for my $file (@file)
+        {
+          &w ("$opts->{dir}/$file", $code{$file});
+        }
+    }
+
 }
 
-my %opts;
+my %opts = qw (dir .);
 
 &GetOptions
 (
-  'skip=s@' => \$opts{skip}, 'dir=s' => \$opts{dir},
+  'skip-components=s' => \$opts{'skip-components'}, 'skip-types=s' => \$opts{'skip-types'},
+  'only-components=s' => \$opts{'only-components'}, 'only-types=s' => \$opts{'only-types'},
+  'dir=s' => \$opts{dir}, 'out=s' => \$opts{out},
   size => \$opts{size}, save => \$opts{save}, load => \$opts{load}, copy => \$opts{copy},
+  'no-allocate=s' => \$opts{'no-allocate'}, 'module-map=s' => \$opts{'module-map'},
 );
 
 ( -d $opts{dir}) or &mkpath ($opts{dir});
+
+if (! $opts{'no-allocate'})
+  {
+    $opts{'no-allocate'} = [];
+  }
+else
+  {
+    $opts{'no-allocate'} = [split (m/,/o, $opts{'no-allocate'})];
+  }
+
+if (! $opts{'module-map'})
+  {
+    $opts{'module-map'} = {};
+  }
+else
+  {
+    $opts{'module-map'} = {split (m/,/o, $opts{'module-map'})};
+  }
+
+sub parseListOrCodeRef
+{
+  my ($opts, $kw) = @_;
+
+  if ($opts->{$kw} =~ m/\.pl$/o)
+    {
+      $opts->{$kw} = do ('File::Spec'->rel2abs ($opts->{$kw}));
+      my $c = $@;
+      die $c if ($c);
+    }
+  elsif ($opts->{$kw} =~ m/^sub /o)
+    {
+      $opts->{$kw} = eval ($opts->{$kw});
+      my $c = $@;
+      die $c if ($c);
+    }
+  elsif ($kw =~ m/-components$/o)
+    {
+      my @comp = split (m/,/o, $opts->{$kw});
+      if ($kw =~ m/^skip-/o)
+        {
+          $opts->{$kw} = sub { my ($type, $comp) = @_; grep { $_ eq "$type$comp" } @comp };
+        }
+      else
+        {
+          $opts->{$kw} = sub { my ($type, $comp) = @_; grep { $_ eq "$type$comp" } @comp };
+        }
+    }
+  elsif ($kw =~ m/-types$/o)
+    {
+      my @type = split (m/,/o, $opts->{$kw});
+      if ($kw =~ m/^skip-/o)
+        {
+          $opts->{$kw} = sub { my ($type) = @_; grep { $_ eq "$type" } @type };
+        }
+      else
+        {
+          $opts->{$kw} = sub { my ($type) = @_; grep { $_ eq "$type" } @type };
+        }
+    }
+}
+
+sub parseSkipOnly
+{
+  my ($opts, $skip, $only) = @_;
+  if ($opts->{$skip})
+    {
+      &parseListOrCodeRef ($opts, $skip);
+    }
+  elsif ($opts->{$only})
+    {
+      &parseListOrCodeRef ($opts, $only);
+      $opts->{$skip} = sub { ! $opts->{$only}->(@_) };
+    }
+  else
+    {
+      $opts->{$skip} = sub { 0 };
+    }
+}
+
+&parseSkipOnly (\%opts, 'skip-components', 'only-components');
+&parseSkipOnly (\%opts, 'skip-types', 'only-types');
 
 my $F90 = shift;
 

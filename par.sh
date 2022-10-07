@@ -4,7 +4,6 @@
 #SBATCH --nodes=1
 #SBATCH --time=00:05:00
 #SBATCH --exclusive
-#SBATCH -p ndl
 #SBATCH --verbose
 #SBATCH --no-requeue
 
@@ -44,8 +43,7 @@ mkdir -p $TMPDIR
 cd $TMPDIR
 
 
-#for K in 0 1
-for K in 1 4
+for K in 0 1
 do
 
 mkdir -p $K
@@ -60,7 +58,7 @@ cd $K
 
 # Choose a pack
 
- PACK=/home/gmap/mrpm/marguina/pack/cy48t1_cpg_drv.01.MIMPIIFC1805.2y.pack
+PACK=/home/gmap/mrpm/marguina/pack/48t3_cpg_drv+.01.MIMPIIFC1805.2y
 
 # Copy data to $TMPDIR
 
@@ -161,6 +159,25 @@ xpnam --delta="
 &NAMPAR1
   NSTRIN=$NPROC_FC,
 /
+&NAMPERTPAR
+/
+&NAETLDIAG
+/
+&NAMDVISI
+/
+&NAMSATSIM
+/
+&NAMPHY0
+  GREDDRS=-,
+/
+&NAMNORGWD
+/
+&NAMMETHOX
+/
+&NAMNUDGLH
+/
+&NAMSPP
+/
 " --inplace fort.4
 
 # Set up grib_api environment
@@ -185,16 +202,8 @@ xpnam --delta="
 fi
 
 xpnam --delta="
-$(cat $PACK/nam/APLPAR_NEW.nam)
+$(cat $PACK/nam/ARP.XFU.CFU.nam)
 " --inplace fort.4
-
-
-xpnam --delta="
-&NAMARPHY
-  LAPL_ARPEGE=.TRUE.
-/
-" --inplace fort.4
-
 
 ls -lrt
 
@@ -202,91 +211,29 @@ cat fort.4
 
 # Run the model; use your mpirun
 
+unset INPART
+unset PERSISTENT
+
 if [ "x$K" = "x0" ]
 then
   export INPART=0
-  export PARALLEL=0
   export PERSISTENT=0
-  export OPENACC=0
 elif [ "x$K" = "x1" ]
 then
   export INPART=1
-  export PARALLEL=1
   export PERSISTENT=1
-  export OPENACC=0
-elif [ "x$K" = "x2" ]
-then
-  export INPART=0
-  export PARALLEL=0
-  export PERSISTENT=1
-  export OPENACC=0
-elif [ "x$K" = "x3" ]
-then
-  export INPART=1
-  export PARALLEL=0
-  export PERSISTENT=1
-  export OPENACC=0
-elif [ "x$K" = "x4" ]
-then
-  export INPART=1
-  export PARALLEL=1
-  export PERSISTENT=1
-  export OPENACC=1
-else
-  unset INPART
-  unset PARALLEL
-  unset PERSISTENT
-  unset OPENACC
 fi
 
 
 pack=$PACK
-pack=/home/gmap/mrpm/marguina/pack/48t1_cpg_drv.01.PGI217.cpu0
+
 BIN=$pack/bin/MASTERODB
 
-export DEBUG=0
-
-
-if [ "x$DEBUG" = "x1" ]
-then
-
-(
-/opt/softs/mpiauto/mpiauto --verbose --wrap --wrap-stdeo --nouse-slurm-mpi --prefix-mpirun '/usr/bin/time -f "time=%e"' \
-    --nnp $NTASK_FC --nn $NNODE_FC --openmp $NOPMP_FC -- $BIN \
- -- --nnp $NTASK_IO --nn $NNODE_IO --openmp $NOPMP_IO -- $BIN 
-) &
-
-
-for i in 0 
-do
-while [ True ]
-do
-  if [ -f "pid.$i.txt" ]
-  then
-    break
-  fi  
-  sleep 1
-done
-done
-set -e
-
-
-gdb -ex 'shell rm pid.0.txt' $BIN $(cat pid.0.txt) 
-
-rm pid.*.txt
-
-wait
-
-else
-
-export UTIL="COPY=MODEL,GEOMETRY"
 
 /opt/softs/mpiauto/mpiauto --verbose --wrap --wrap-stdeo --nouse-slurm-mpi --prefix-mpirun '/usr/bin/time -f "time=%e"' \
     --nnp $NTASK_FC --nn $NNODE_FC --openmp $NOPMP_FC -- $BIN \
  -- --nnp $NTASK_IO --nn $NNODE_IO --openmp $NOPMP_IO -- $BIN 
 
-
-fi
 
 
 
@@ -297,8 +244,6 @@ cd ..
 done
 
 
-#diffNODE.001_01 0/NODE.001_01 2/NODE.001_01
-#diffNODE.001_01 0/NODE.001_01 1/NODE.001_01
-diffNODE.001_01 1/NODE.001_01 4/NODE.001_01
+diffNODE.001_01 --gpnorms '*' 0/NODE.001_01 1/NODE.001_01
 
 
