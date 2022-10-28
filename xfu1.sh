@@ -1,11 +1,10 @@
 #!/bin/bash
 #SBATCH --export=NONE
-#SBATCH --job-name=arp
-#SBATCH --nodes=1
+#SBATCH --job-name=xfu1
+#SBATCH --nodes=4
 #SBATCH --time=00:05:00
 #SBATCH --exclusive
 #SBATCH --verbose
-#SBATCH -p normal256
 #SBATCH --no-requeue
 
 set -x
@@ -22,7 +21,7 @@ export DR_HOOK_OPT=prof
 export EC_PROFILE_HEAP=0
 export EC_MPI_ATEXIT=0
 
-export PATH=$HOME/benchmf1709/scripts:$PATH
+export PATH=$HOME/bin:$HOME/benchmf1709/scripts:$PATH
 
 # Directory where input data is stored
 
@@ -32,25 +31,26 @@ DATA=/scratch/work/marguina/benchmf1709-data
 
 export workdir=/scratch/work/marguina
 
+if [ "x$SLURM_JOBID" != "x" ]
+then
+export TMPDIR=$workdir/tmp/arp.$SLURM_JOBID
+else
+export TMPDIR=$workdir/tmp/arp.$$
+fi
+
 mkdir -p $TMPDIR
 
 cd $TMPDIR
 
-for aplpar_new in 0 1
-do
 
-for NAM in APLPAR_NEW
-do
-
-mkdir -p $NAM.$aplpar_new
-cd $NAM.$aplpar_new
+NAM=ARP.XFU.CFU
 
 
 # Choose your test case resolution
 
 #GRID=t1798
-#GRID=t0798
- GRID=t0031
+ GRID=t0798
+#GRID=t0031
 
 # Choose a pack
 
@@ -82,9 +82,9 @@ done
 
 # Set the number of nodes, tasks, threads for the model
 
-NNODE_FC=1
+NNODE_FC=$SLURM_NNODES
 NTASK_FC=4
-NOPMP_FC=8
+NOPMP_FC=32
 
 # Set the number of nodes, tasks, threads for the IO server
 
@@ -97,13 +97,13 @@ let "NPROC_IO=$NNODE_IO*$NTASK_IO"
 
 # Set forecast term; reduce it for debugging
 
-STOP=6
+STOP=1
 
 # Modify namelist
 
 xpnam --delta="
 &NAMRIP
-  CSTOP='h$STOP',
+  CSTOP='t5',
   TSTEP=240,
 /
 &NAMARG
@@ -139,7 +139,7 @@ xpnam --delta="
 &NAMFA
   NVGRIB=0,
 /
-&NAMDPRECIPS
+&NAMPERTPAR
 /
 " --inplace fort.4
 
@@ -153,8 +153,6 @@ xpnam --delta="
 /
 &NAMPAR1
   NSTRIN=$NPROC_FC,
-/
-&NAMPERTPAR
 /
 " --inplace fort.4
 
@@ -178,16 +176,10 @@ if [ 1 -eq 1 ]
 then
 xpnam --delta="
 &NAMDIM
-  NPROMA=-4,
+  NPROMA=-32,
 /
-" --inplace fort.4
-fi
-
-if [ "x$aplpar_new" = "x1" ]
-then
-xpnam --delta="
-&NAMPHY
-  LAPL_ARPEGE=.TRUE.
+&NAMCT1
+  N1HIS=0,
 /
 " --inplace fort.4
 fi
@@ -198,20 +190,32 @@ cat fort.4
 
 # Run the model; use your mpirun
 
+export INPART=1
+export PERSISTENT=1
+
+
 pack=$PACK
-#ack=/home/mf/dp/marp/gco/packs/cy48t1_main.01.MIMPIIFC1805.2y.pack
+
+#xport MPIAUTOCONFIG=mpiauto.DDT.conf
 
 /opt/softs/mpiauto/mpiauto --verbose --wrap --wrap-stdeo --nouse-slurm-mpi --prefix-mpirun '/usr/bin/time -f "time=%e"' \
     --nnp $NTASK_FC --nn $NNODE_FC --openmp $NOPMP_FC -- $pack/bin/MASTERODB \
  -- --nnp $NTASK_IO --nn $NNODE_IO --openmp $NOPMP_IO -- $pack/bin/MASTERODB 
 
-diffNODE.001_01 NODE.001_01 $PACK/ref/NODE.001_01.$NAM
-#cp NODE.001_01 $PACK/ref/NODE.001_01.$NAM.$aplpar_new
+#diffNODE.001_01 --gpnorms '*' NODE.001_01 $PACK/ref.48t3_gprcp.01.MIMPIIFC1805.2y/NODE.001_01.$NAM
+
 
 ls -lrt
 
-cd ..
+export OMP_NUM_THREADS=4
+export DR_HOOK_NOT_MPI=1
+export DR_HOOK=0
+$pack/bin/WRAP_CPG_DIA_FLUX --diff
 
-done
+$pack/cpg_dia_flu/compile.cpu_intel/wrap_cpg_dia_flux.x --diff --case .
 
-done
+mkdir -p $workdir/cpg_dia_flu/$GRID
+cp -alf *.IN.0001.0003 *.OUT.0001.0003 $workdir/cpg_dia_flu/$GRID/
+
+
+

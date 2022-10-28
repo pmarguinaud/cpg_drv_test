@@ -5,7 +5,6 @@
 #SBATCH --time=00:05:00
 #SBATCH --exclusive
 #SBATCH --verbose
-#SBATCH -p normal256
 #SBATCH --no-requeue
 
 set -x
@@ -22,7 +21,7 @@ export DR_HOOK_OPT=prof
 export EC_PROFILE_HEAP=0
 export EC_MPI_ATEXIT=0
 
-export PATH=$HOME/benchmf1709/scripts:$PATH
+export PATH=$HOME/bin:$HOME/benchmf1709/scripts:$PATH
 
 # Directory where input data is stored
 
@@ -32,18 +31,23 @@ DATA=/scratch/work/marguina/benchmf1709-data
 
 export workdir=/scratch/work/marguina
 
+if [ "x$SLURM_JOBID" != "x" ]
+then
+export TMPDIR=$workdir/tmp/arp.$SLURM_JOBID
+else
+export TMPDIR=$workdir/tmp/arp.$$
+fi
+
 mkdir -p $TMPDIR
 
 cd $TMPDIR
 
-for aplpar_new in 0 1
+
+for NAM in ARP 
 do
 
-for NAM in APLPAR_NEW
-do
-
-mkdir -p $NAM.$aplpar_new
-cd $NAM.$aplpar_new
+mkdir -p $NAM
+cd $NAM
 
 
 # Choose your test case resolution
@@ -74,6 +78,9 @@ do
   ln -s $f $b
 done
 
+rm ICMSHFCSTINIT
+ln -s arp/ICMSHFCSTINIT
+
 for f in $DATA/arp/code/43oops/naml/*
 do
   cp $f .
@@ -83,8 +90,8 @@ done
 # Set the number of nodes, tasks, threads for the model
 
 NNODE_FC=1
-NTASK_FC=4
-NOPMP_FC=8
+NTASK_FC=8
+NOPMP_FC=4
 
 # Set the number of nodes, tasks, threads for the IO server
 
@@ -137,9 +144,9 @@ xpnam --delta="
 &NAMSPP
 /
 &NAMFA
-  NVGRIB=0,
+  NVGRIB=123,
 /
-&NAMDPRECIPS
+&NAMPERTPAR
 /
 " --inplace fort.4
 
@@ -153,8 +160,6 @@ xpnam --delta="
 /
 &NAMPAR1
   NSTRIN=$NPROC_FC,
-/
-&NAMPERTPAR
 /
 " --inplace fort.4
 
@@ -180,14 +185,8 @@ xpnam --delta="
 &NAMDIM
   NPROMA=-4,
 /
-" --inplace fort.4
-fi
-
-if [ "x$aplpar_new" = "x1" ]
-then
-xpnam --delta="
-&NAMPHY
-  LAPL_ARPEGE=.TRUE.
+&NAMDYNA
+  LSLDIA=.TRUE.,
 /
 " --inplace fort.4
 fi
@@ -198,20 +197,18 @@ cat fort.4
 
 # Run the model; use your mpirun
 
+
 pack=$PACK
-#ack=/home/mf/dp/marp/gco/packs/cy48t1_main.01.MIMPIIFC1805.2y.pack
 
 /opt/softs/mpiauto/mpiauto --verbose --wrap --wrap-stdeo --nouse-slurm-mpi --prefix-mpirun '/usr/bin/time -f "time=%e"' \
     --nnp $NTASK_FC --nn $NNODE_FC --openmp $NOPMP_FC -- $pack/bin/MASTERODB \
  -- --nnp $NTASK_IO --nn $NNODE_IO --openmp $NOPMP_IO -- $pack/bin/MASTERODB 
 
-diffNODE.001_01 NODE.001_01 $PACK/ref/NODE.001_01.$NAM
-#cp NODE.001_01 $PACK/ref/NODE.001_01.$NAM.$aplpar_new
+diffNODE.001_01 --gpnorms AERO.001 NODE.001_01 $PACK/ref.48t3_gprcp.01.MIMPIIFC1805.2y/NODE.001_01.$NAM
+
 
 ls -lrt
 
 cd ..
-
-done
 
 done

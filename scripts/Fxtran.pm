@@ -1555,7 +1555,7 @@ sub intfb
   
   $dir ||= '.';
 
-  my $doc = &Fxtran::fxtran (location => $F90);
+  my $doc = &Fxtran::fxtran (location => $F90, fopts => ['-line-length' => 300]);
   
   my @pu = &f ('./f:object/f:file/f:program-unit', $doc);
   

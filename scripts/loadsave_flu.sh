@@ -59,7 +59,6 @@ set -x
 
 ./scripts/loadsave.pl \
   --load --save --dir $dir --out util_cpg_opts_type_mod.F90 \
-  --skip-types CPG_BNDS_TYPE \
   $(resolve .fypp/arpifs/module/cpg_opts_type_mod.F90)
 
 ./scripts/loadsave.pl \
