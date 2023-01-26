@@ -1,0 +1,30 @@
+$VAR1 = {
+          'comp' => {
+                      'DERIVATIVELW' => \'VARIABLE_3D',
+                      'EDRO' => \'VARIABLE_2D',
+                      'EMTC' => \'VARIABLE_3D',
+                      'EMTD' => \'VARIABLE_3D',
+                      'EMTU' => \'VARIABLE_3D',
+                      'RMOON' => \'VARIABLE_2D',
+                      'SRCDIR' => \'VARIABLE_2D',
+                      'SRFDIR' => \'VARIABLE_2D',
+                      'SRLWD' => \'VARIABLE_3D',
+                      'SRLWDC' => \'VARIABLE_2D',
+                      'SRLWDCS' => \'VARIABLE_2D',
+                      'SRSWD' => \'VARIABLE_2D',
+                      'SRSWDC' => \'VARIABLE_2D',
+                      'SRSWDCS' => \'VARIABLE_2D',
+                      'SRSWDUV' => \'VARIABLE_2D',
+                      'SRSWDV' => \'VARIABLE_2D',
+                      'SRSWPAR' => \'VARIABLE_2D',
+                      'SRSWPARC' => \'VARIABLE_2D',
+                      'SRSWTINC' => \'VARIABLE_2D',
+                      'SRSWUVB' => \'VARIABLE_2D',
+                      'TAUAER' => \'VARIABLE_4D',
+                      'TRSC' => \'VARIABLE_3D',
+                      'TRSW' => \'VARIABLE_3D'
+                    },
+          'name' => 'RADIATION_VARIABLES',
+          'super' => undef,
+          'update_view' => 0
+        };
