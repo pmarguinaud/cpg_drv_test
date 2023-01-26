@@ -1,6 +1,7 @@
-#!/home/gmap/mrpm/marguina/install/perl-5.32.0/bin/perl -w
+#!/usr/bin/perl -w
 #
 use strict;
+use local::lib;
 use FindBin qw ($Bin);
 use Data::Dumper;
 use FileHandle;
@@ -494,7 +495,7 @@ my $suffix = '_parallel';
 
 my $F90 = shift;
 
-my $doc = &Fxtran::fxtran (location => $F90, fopts => [qw (-line-length 300)]);
+my $doc = &Fxtran::fxtran (location => $F90, fopts => [qw (-line-length 300 -no-include -no-cpp)]);
 
 # Prepare the code
 
