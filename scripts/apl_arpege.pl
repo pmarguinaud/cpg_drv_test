@@ -590,6 +590,8 @@ for my $n (sort keys (%$t))
 &removeUnusedIncludes ($doc);
 
 
+print &Dumper ($t);
+
 for my $par (@par)
   {
     my $target = $par->getAttribute ('target');
