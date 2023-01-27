@@ -202,8 +202,15 @@ xpnam --delta="
 fi
 
 xpnam --delta="
-$(cat $PACK/nam/ARP.XFU.CFU.nam)
+$(cat $PACK/nam/APLPAR_NEW.nam)
 " --inplace fort.4
+
+xpnam --delta="
+&NAMPHY
+  LAPL_ARPEGE=.TRUE.
+/
+" --inplace fort.4
+
 
 ls -lrt
 
@@ -213,15 +220,18 @@ cat fort.4
 
 unset INPART
 unset PERSISTENT
+unset PARALLEL
 
 if [ "x$K" = "x0" ]
 then
   export INPART=0
   export PERSISTENT=0
+  export PARALLEL=0
 elif [ "x$K" = "x1" ]
 then
   export INPART=1
   export PERSISTENT=1
+  export PARALLEL=1
 fi
 
 

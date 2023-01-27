@@ -496,11 +496,12 @@ my $suffix = '_parallel';
 
 my $F90 = shift;
 
-my $doc = &Fxtran::parse (location => $F90, fopts => [qw (-line-length 300 -no-include -no-cpp)]);
+my $doc = &Fxtran::parse (location => $F90, fopts => [qw (-line-length 300 -no-include -no-cpp -construct-tag)]);
 
 # Prepare the code
 
 &Associate::resolveAssociates ($doc);
+
 &Decl::forceSingleDecl ($doc);
 
 &parseDirectives ($doc);
