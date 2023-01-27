@@ -8,6 +8,7 @@ use FileHandle;
 use File::Basename;
 use List::MoreUtils qw (uniq all);
 use lib $Bin;
+use lib "/home/gmap/mrpm/marguina/fxtran-acdc/lib";
 use Fxtran;
 use Decl;
 use Object;
@@ -126,12 +127,12 @@ sub fieldifyDecl
         {
           &SymbolTable::removeAttributes ($stmt, 'INTENT');
           $s->{arg}->setData ("YD_$N");
-          ($decl_fld) = &Fxtran::fxtran (statement => "TYPE ($type_fld), POINTER :: YD_$N");
+          ($decl_fld) = &s ("TYPE ($type_fld), POINTER :: YD_$N");
           $s->{field} = &n ("<named-E><N><n>YD_$N</n></N></named-E>");
         }
       else
         {
-          ($decl_fld) = &Fxtran::fxtran (statement => "TYPE ($type_fld), POINTER :: YL_$N");
+          ($decl_fld) = &s ("TYPE ($type_fld), POINTER :: YL_$N");
           $s->{field} = &n ("<named-E><N><n>YL_$N</n></N></named-E>");
         }
   
@@ -155,7 +156,7 @@ sub makeParallel
 
   my $str = ' ' x $indent;
 
-  my ($loop) = &Fxtran::fxtran (fragment => << "EOF");
+  my ($loop) = &Fxtran::parse (fragment => << "EOF");
 DO JBLK = 1, YDCPG_OPTS%KGPBLKS
 ${str}  YLCPG_BNDS = YDCPG_BNDS
 ${str}  CALL YLCPG_BNDS%UPDATE (JBLK)
@@ -269,7 +270,7 @@ EOF
       my $s = $t->{$ptr};
       my $access = $intent2access{$intent{$ptr}};
       my $var = $s->{field}->textContent;
-      my $stmt = &Fxtran::fxtran (statement => "$ptr => GET_HOST_DATA_$access ($var)");
+      my $stmt = &s ("$ptr => GET_HOST_DATA_$access ($var)");
       $par->insertBefore ($stmt, $loop);
       $par->insertBefore (&t ("\n" . (' ' x $indent)), $loop);
 
@@ -495,7 +496,7 @@ my $suffix = '_parallel';
 
 my $F90 = shift;
 
-my $doc = &Fxtran::fxtran (location => $F90, fopts => [qw (-line-length 300 -no-include -no-cpp)]);
+my $doc = &Fxtran::parse (location => $F90, fopts => [qw (-line-length 300 -no-include -no-cpp)]);
 
 # Prepare the code
 
@@ -576,7 +577,7 @@ for my $n (sort keys (%$t))
   {
     my $s = $t->{$n};
     next unless ($s->{object_based});
-    my $decl = &Fxtran::fxtran (statement => $s->{ts}->textContent . ", POINTER :: " . $n . "(" . join (',', (':') x ($s->{nd} + 1)) . ")");
+    my $decl = &s ($s->{ts}->textContent . ", POINTER :: " . $n . "(" . join (',', (':') x ($s->{nd} + 1)) . ")");
     push @decl, $decl;
   }
 

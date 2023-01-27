@@ -58,7 +58,7 @@ cd $K
 
 # Choose a pack
 
-PACK=/home/gmap/mrpm/marguina/pack/48t3_cpg_drv+.01.MIMPIIFC1805.2y
+PACK=/home/gmap/mrpm/marguina/pack/48t3_cpg_drv+.01.PGI2211.cpu0
 
 # Copy data to $TMPDIR
 
@@ -107,8 +107,8 @@ STOP=6
 
 xpnam --delta="
 &NAMRIP
-! CSTOP='h$STOP',
-  CSTOP='t10',
+  CSTOP='h$STOP',
+! CSTOP='t10',
   TSTEP=240,
 /
 &NAMARG

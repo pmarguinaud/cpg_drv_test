@@ -157,7 +157,7 @@ sub addDecl
 
   for my $decl (@decl)
     {
-      my $stmt = ref ($decl) ? $decl : &Fxtran::fxtran (statement => $decl);
+      my $stmt = ref ($decl) ? $decl : &s ($decl);
       $zhook_decl->parentNode->insertBefore ($stmt, $zhook_decl);
       $zhook_decl->parentNode->insertBefore (&t ("\n"), $zhook_decl);
       $zhook_decl->parentNode->insertBefore (&t ("\n"), $zhook_decl) if ($cr);
@@ -199,7 +199,7 @@ sub getSubroutineInterface
 
 FOUND:
 
-  my ($intf) = &Fxtran::fxtran (fragment => $code);
+  my ($intf) = &Fxtran::parse (fragment => $code);
 
   return $intf;
 }
