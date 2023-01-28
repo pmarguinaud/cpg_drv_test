@@ -255,7 +255,6 @@ EOF
 
       &addExtraIndex ($expr, &n ("<named-E><N><n>JBLK</n></N></named-E>"), $s);
 
-#     &Pointer::Parallel::SymbolTable::grokIntent ($expr, \$intent{$N});
       &Call::grokIntent ($expr, \$intent{$N}, $find);
     }
 
