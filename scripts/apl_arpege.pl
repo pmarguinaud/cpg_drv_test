@@ -117,7 +117,7 @@ sub fieldifyDecl
           $sslt->appendChild (&t (',')) if ($i < $s->{nd});
         }
   
-      &Pointer::Parallel::SymbolTable::addAttributes ($stmt, qw (POINTER));
+      &Decl::addAttributes ($stmt, qw (POINTER));
   
       my $type_fld = &Pointer::Parallel::SymbolTable::getFieldType ($s->{nd}, $s->{ts});
       $type_fld or die "Unknown type : " . $s->{ts}->textContent;
@@ -126,7 +126,7 @@ sub fieldifyDecl
   
       if ($s->{arg})
         {
-          &Pointer::Parallel::SymbolTable::removeAttributes ($stmt, 'INTENT');
+          &Decl::removeAttributes ($stmt, 'INTENT');
           $s->{arg}->setData ("YD_$N");
           ($decl_fld) = &s ("TYPE ($type_fld), POINTER :: YD_$N");
           $s->{field} = &n ("<named-E><N><n>YD_$N</n></N></named-E>");
