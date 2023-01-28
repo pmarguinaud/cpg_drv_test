@@ -15,6 +15,7 @@ use Pointer::Parallel::Object;
 use Pointer::Parallel::SymbolTable;
 use Loop;
 use Associate;
+use Subroutine;
 
 sub updateFile
 {
@@ -610,7 +611,7 @@ for my $par (@par)
   }
 
 
-&Pointer::Parallel::SymbolTable::renameSubroutine ($doc, sub { return $_[0] . uc ($suffix) });
+&Subroutine::rename ($doc, sub { return $_[0] . uc ($suffix) });
 
 $F90 =~ s/.F90$/$suffix.F90/o;
 
