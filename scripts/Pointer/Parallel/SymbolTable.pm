@@ -66,20 +66,6 @@ sub getFieldType
   return "FIELD_$ts{$ts}${nd}D";
 }
 
-sub useModule
-{
-  my ($doc, @mod) = @_;
-
-  my ($implicit_none) = &F ('.//implicit-none-stmt', $doc);
-
-  for my $mod (@mod)
-    {
-      next if (&F ('.//use-stmt[string(module-N)="?"]', $mod, $doc));
-      $implicit_none->parentNode->insertBefore (&n ("<use-stmt>USE <module-N><N><n>$mod</n></N></module-N></use-stmt>"), $implicit_none);
-      $implicit_none->parentNode->insertBefore (&t ("\n"), $implicit_none);
-    }
-}
-
 my @view;
 
 sub getSubroutineInterface

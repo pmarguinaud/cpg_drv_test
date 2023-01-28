@@ -509,7 +509,7 @@ my $doc = &Fxtran::parse (location => $F90, fopts => [qw (-line-length 300 -no-i
 
 # Add modules
 
-&Pointer::Parallel::SymbolTable::useModule ($doc, qw (FIELD_MODULE FIELD_REGISTRY_MOD FIELD_HELPER_MODULE));
+&Decl::use ($doc, map { "USE $_" } qw (FIELD_MODULE FIELD_REGISTRY_MOD FIELD_HELPER_MODULE));
 
 # Add local variables
 
