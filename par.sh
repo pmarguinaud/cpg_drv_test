@@ -87,8 +87,8 @@ done
 # Set the number of nodes, tasks, threads for the model
 
 NNODE_FC=1
-NTASK_FC=1
-NOPMP_FC=1
+NTASK_FC=2
+NOPMP_FC=2
 
 # Set the number of nodes, tasks, threads for the IO server
 

@@ -7,13 +7,13 @@ use Data::Dumper;
 use FileHandle;
 use File::Basename;
 use List::MoreUtils qw (uniq all);
-use lib $Bin;
 use lib "/home/gmap/mrpm/marguina/fxtran-acdc/lib";
+use lib $Bin;
 use Fxtran;
 use Decl;
-use Object;
+use Pointer::Parallel::Object;
+use Pointer::Parallel::SymbolTable;
 use Loop;
-use SymbolTable;
 use Associate;
 
 sub updateFile
@@ -116,16 +116,16 @@ sub fieldifyDecl
           $sslt->appendChild (&t (',')) if ($i < $s->{nd});
         }
   
-      &SymbolTable::addAttributes ($stmt, qw (POINTER));
+      &Pointer::Parallel::SymbolTable::addAttributes ($stmt, qw (POINTER));
   
-      my $type_fld = &SymbolTable::getFieldType ($s->{nd}, $s->{ts});
+      my $type_fld = &Pointer::Parallel::SymbolTable::getFieldType ($s->{nd}, $s->{ts});
       $type_fld or die "Unknown type : " . $s->{ts}->textContent;
   
       my $decl_fld;
   
       if ($s->{arg})
         {
-          &SymbolTable::removeAttributes ($stmt, 'INTENT');
+          &Pointer::Parallel::SymbolTable::removeAttributes ($stmt, 'INTENT');
           $s->{arg}->setData ("YD_$N");
           ($decl_fld) = &s ("TYPE ($type_fld), POINTER :: YD_$N");
           $s->{field} = &n ("<named-E><N><n>YD_$N</n></N></named-E>");
@@ -210,11 +210,11 @@ EOF
           # we record the pointer wich will be used to access the object component
           unless ($t->{$ptr})
             {
-              my $key = join ('%', &Object::getObjectType ($s, $N), @ctl);
+              my $key = join ('%', &Pointer::Parallel::Object::getObjectType ($s, $N), @ctl);
               my $decl;
               eval
                 {
-                  $decl = &Object::getObjectDecl ($key);
+                  $decl = &Pointer::Parallel::Object::getObjectDecl ($key);
                 };
               if (my $c = $@)
                 {
@@ -233,7 +233,7 @@ EOF
                              ts => $ts,
                              as => $as,
                              nd => $nd,
-                             field => &Object::getFieldFromObjectComponents ($N, @ctl),
+                             field => &Pointer::Parallel::Object::getFieldFromObjectComponents ($N, @ctl),
                              object_based => 1, # postpone pointer declaration
                            };
             }
@@ -252,7 +252,7 @@ EOF
 
       &addExtraIndex ($expr, &n ("<named-E><N><n>JBLK</n></N></named-E>"), $s);
 
-      &SymbolTable::grokIntent ($expr, \$intent{$N});
+      &Pointer::Parallel::SymbolTable::grokIntent ($expr, \$intent{$N});
     }
 
   my %intent2access = qw (IN RDONLY INOUT RDWR OUT WRONLY);
@@ -369,7 +369,7 @@ sub callParallelRoutine
           my @ctl = &F ('./R-LT/component-R/ct', $expr, 1);
           if (@ctl)
             {
-              my $e = &Object::getFieldFromObjectComponents ($arg->textContent, @ctl);
+              my $e = &Pointer::Parallel::Object::getFieldFromObjectComponents ($arg->textContent, @ctl);
               $expr->replaceNode ($e);
             }
         }
@@ -508,20 +508,20 @@ my $doc = &Fxtran::parse (location => $F90, fopts => [qw (-line-length 300 -no-i
 
 # Add modules
 
-&SymbolTable::useModule ($doc, qw (FIELD_MODULE FIELD_REGISTRY_MOD FIELD_HELPER_MODULE));
+&Pointer::Parallel::SymbolTable::useModule ($doc, qw (FIELD_MODULE FIELD_REGISTRY_MOD FIELD_HELPER_MODULE));
 
 # Add local variables
 
-&SymbolTable::addDecl ($doc, 1, 
+&Pointer::Parallel::SymbolTable::addDecl ($doc, 1, 
           'INTEGER(KIND=JPIM) :: JBLK',
           'TYPE(CPG_BNDS_TYPE) :: YLCPG_BNDS', 
           'REAL(KIND=JPRB) :: ZHOOK_HANDLE_FIELD_API');
 
-my $t = &SymbolTable::getSymbolTable ($doc);
+my $t = &Pointer::Parallel::SymbolTable::getSymbolTable ($doc);
 
 for my $v (qw (JLON JLEV))
   {
-    &SymbolTable::addDecl ($doc, 1, "INTEGER(KIND=JPIM) :: $v") unless ($t->{$v});
+    &Pointer::Parallel::SymbolTable::addDecl ($doc, 1, "INTEGER(KIND=JPIM) :: $v") unless ($t->{$v});
   }
 
 # Remove SKIP sections
@@ -583,7 +583,7 @@ for my $n (sort keys (%$t))
   }
 
 
-&SymbolTable::addDecl ($doc, 0, @decl);
+&Pointer::Parallel::SymbolTable::addDecl ($doc, 0, @decl);
 
 # Create/delete fields for local arrays
 
@@ -592,7 +592,7 @@ for my $n (sort keys (%$t))
 &removeUnusedIncludes ($doc);
 
 
-print &Dumper ($t);
+#print &Dumper ($t);
 
 for my $par (@par)
   {
@@ -610,7 +610,7 @@ for my $par (@par)
   }
 
 
-&SymbolTable::renameSubroutine ($doc, sub { return $_[0] . uc ($suffix) });
+&Pointer::Parallel::SymbolTable::renameSubroutine ($doc, sub { return $_[0] . uc ($suffix) });
 
 $F90 =~ s/.F90$/$suffix.F90/o;
 
