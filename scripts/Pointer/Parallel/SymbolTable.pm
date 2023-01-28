@@ -124,20 +124,6 @@ sub useModule
     }
 }
 
-sub addDecl
-{
-  my ($doc, $cr, @decl) = @_;
-  my ($zhook_decl) = &F ('.//T-decl-stmt[string(.//EN-N)="ZHOOK_HANDLE"]', $doc);
-
-  for my $decl (@decl)
-    {
-      my $stmt = ref ($decl) ? $decl : &s ($decl);
-      $zhook_decl->parentNode->insertBefore ($stmt, $zhook_decl);
-      $zhook_decl->parentNode->insertBefore (&t ("\n"), $zhook_decl);
-      $zhook_decl->parentNode->insertBefore (&t ("\n"), $zhook_decl) if ($cr);
-     }
-}
-
 my @view;
 
 sub getSubroutineInterface

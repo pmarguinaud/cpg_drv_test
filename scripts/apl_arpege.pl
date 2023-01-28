@@ -513,7 +513,7 @@ my $doc = &Fxtran::parse (location => $F90, fopts => [qw (-line-length 300 -no-i
 
 # Add local variables
 
-&Pointer::Parallel::SymbolTable::addDecl ($doc, 1, 
+&Decl::declare ($doc,  
           'INTEGER(KIND=JPIM) :: JBLK',
           'TYPE(CPG_BNDS_TYPE) :: YLCPG_BNDS', 
           'REAL(KIND=JPRB) :: ZHOOK_HANDLE_FIELD_API');
@@ -522,7 +522,7 @@ my $t = &Pointer::Parallel::SymbolTable::getSymbolTable ($doc);
 
 for my $v (qw (JLON JLEV))
   {
-    &Pointer::Parallel::SymbolTable::addDecl ($doc, 1, "INTEGER(KIND=JPIM) :: $v") unless ($t->{$v});
+    &Decl::declare ($doc, "INTEGER(KIND=JPIM) :: $v") unless ($t->{$v});
   }
 
 # Remove SKIP sections
@@ -584,7 +584,7 @@ for my $n (sort keys (%$t))
   }
 
 
-&Pointer::Parallel::SymbolTable::addDecl ($doc, 0, @decl);
+&Decl::declare($doc, @decl);
 
 # Create/delete fields for local arrays
 
