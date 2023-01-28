@@ -14,8 +14,10 @@ use Decl;
 use Pointer::Parallel::Object;
 use Pointer::Parallel::SymbolTable;
 use Loop;
+use Call;
 use Associate;
 use Subroutine;
+use Finder::Pack;
 
 sub updateFile
 {
@@ -147,7 +149,7 @@ sub fieldifyDecl
 
 sub makeParallel
 {
-  my ($par, $t, $hook_suffix) = @_;
+  my ($par, $t, $hook_suffix, $find) = @_;
 
   # Add a loop nest on blocks
 
@@ -253,7 +255,8 @@ EOF
 
       &addExtraIndex ($expr, &n ("<named-E><N><n>JBLK</n></N></named-E>"), $s);
 
-      &Pointer::Parallel::SymbolTable::grokIntent ($expr, \$intent{$N});
+#     &Pointer::Parallel::SymbolTable::grokIntent ($expr, \$intent{$N});
+      &Call::grokIntent ($expr, \$intent{$N}, $find);
     }
 
   my %intent2access = qw (IN RDONLY INOUT RDWR OUT WRONLY);
@@ -497,6 +500,8 @@ my $suffix = '_parallel';
 
 my $F90 = shift;
 
+my $find = 'Finder::Pack'->new ();
+
 my $doc = &Fxtran::parse (location => $F90, fopts => [qw (-line-length 300 -no-include -no-cpp -construct-tag)]);
 
 # Prepare the code
@@ -543,7 +548,7 @@ my @par = &F ('.//parallel-section', $doc);
 
 for my $par (@par)
   {
-    &makeParallel ($par, $t, '');
+    &makeParallel ($par, $t, '', $find);
   }
 
 # Process call to parallel routines
