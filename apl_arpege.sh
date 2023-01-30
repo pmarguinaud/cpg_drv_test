@@ -33,8 +33,7 @@ for f in \
   src/local/arpifs/phys_dmn/mf_phys_init.F90 \
   src/local/arpifs/phys_dmn/mf_phys.F90
 do
-#./scripts/apl_arpege.pl $f 
- pointerParallel.pl $f 
+  pointerParallel.pl $f 
 done
 
 grep _parallel src/local/arpifs/phys_dmn/apl_arpege_parallel.F90
