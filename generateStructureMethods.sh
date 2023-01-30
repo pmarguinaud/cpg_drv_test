@@ -5,7 +5,7 @@ set -x
 export PATH=/home/gmap/mrpm/marguina/fxtran-acdc/bin:$PATH
 
 
-mkdir -p src/local/util/arpifs/module
+mkdir -p src/local/ifsaux/util
 
 function resolve ()
 {
@@ -173,7 +173,7 @@ do
     set -x
     generateStructureMethods.pl \
        --skip-components TYPE_GFL_COMP%PREVIOUS,MODEL_PHYSICS_STOCHAST_TYPE%YR_RANDOM_STREAMS,TEPHY%YSURF,TRADIATION%RAD_CONFIG,TECUCONVCA%YD_RANDOM_STREAM_CA,GEOMETRY%YRCSGEOMAD_NB,GEOMETRY%YRGSGEOMAD_NB \
-       --dir src/local/util/arpifs/module \
+       --dir src/local/ifsaux/util \
        --save --load $(resolve $f)
     set +x
     break

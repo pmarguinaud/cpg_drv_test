@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir -p src/local/ifsaux/openacc/arpifs/phys_dmn/
+
 for f in \
    arpifs/phys_dmn/actke.F90 \
    arpifs/phys_dmn/acbl89.F90 \
@@ -10,7 +12,7 @@ for f in \
    arpifs/phys_dmn/fl2hl.F90
 do 
   echo "==> $f <=="
-  /home/gmap/mrpm/marguina/fxtran-acdc/bin/openacc.pl src/local/$f src/local/openacc/arpifs/phys_dmn/
+  /home/gmap/mrpm/marguina/fxtran-acdc/bin/openacc.pl src/local/$f src/local/ifsaux/openacc/arpifs/phys_dmn/
 done
 
 
