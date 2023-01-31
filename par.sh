@@ -44,6 +44,7 @@ cd $TMPDIR
 
 
 for K in 0 1
+#for K in 1
 do
 
 mkdir -p $K
@@ -58,7 +59,7 @@ cd $K
 
 # Choose a pack
 
-PACK=/home/gmap/mrpm/marguina/pack/48t3_cpg_drv+.01.PGI2211.cpu0
+PACK=/home/gmap/mrpm/marguina/pack/48t3_cpg_drv+.01.MIMPIIFC1805.2y
 
 # Copy data to $TMPDIR
 
@@ -87,8 +88,10 @@ done
 # Set the number of nodes, tasks, threads for the model
 
 NNODE_FC=1
-NTASK_FC=2
-NOPMP_FC=2
+#NTASK_FC=2
+#NOPMP_FC=2
+NTASK_FC=1
+NOPMP_FC=1
 
 # Set the number of nodes, tasks, threads for the IO server
 
@@ -107,8 +110,8 @@ STOP=6
 
 xpnam --delta="
 &NAMRIP
-  CSTOP='h$STOP',
-! CSTOP='t10',
+! CSTOP='h$STOP',
+  CSTOP='t20',
   TSTEP=240,
 /
 &NAMARG
@@ -222,23 +225,37 @@ unset INPART
 unset PERSISTENT
 unset PARALLEL
 
-if [ "x$K" = "x0" ]
-then
-  export INPART=0
-  export PERSISTENT=0
-  export PARALLEL=0
-elif [ "x$K" = "x1" ]
-then
+#if [ "x$K" = "x0" ]
+#then
+#  export INPART=0
+#  export PERSISTENT=0
+#  export PARALLEL=0
+#elif [ "x$K" = "x1" ]
+#then
   export INPART=1
   export PERSISTENT=1
   export PARALLEL=1
-fi
+#fi
 
 
 pack=$PACK
 
 BIN=$pack/bin/MASTERODB
 
+\rm -f lparallelmethod.txt
+
+if [ "x$K" = "x1" ]
+then
+export LPARALLELMETHOD_VERBOSE=1
+cat -> lparallelmethod.txt << EOF
+OpenMPSingleColumn APL_ARPEGE_SHALLOW_CONVECTION_AND_TURBULENCE_PARALLEL:1
+OpenMPSingleColumn APL_ARPEGE_DPRECIPS_PARALLEL:0
+#penMPSingleColumn APL_ARPEGE_PARALLEL:15
+EOF
+
+cat lparallelmethod.txt
+
+fi
 
 /opt/softs/mpiauto/mpiauto --verbose --wrap --wrap-stdeo --nouse-slurm-mpi --prefix-mpirun '/usr/bin/time -f "time=%e"' \
     --nnp $NTASK_FC --nn $NNODE_FC --openmp $NOPMP_FC -- $BIN \
@@ -255,5 +272,7 @@ done
 
 
 diffNODE.001_01 --gpnorms '*' 0/NODE.001_01 1/NODE.001_01
+
+pwd > /home/gmap/mrpm/marguina/pack/48t3_cpg_drv+.01.MIMPIIFC1805.2y/pwd.txt 
 
 
