@@ -43,8 +43,7 @@ mkdir -p $TMPDIR
 cd $TMPDIR
 
 
-for K in 0 1
-#for K in 1
+for K in 0 1 2
 do
 
 mkdir -p $K
@@ -199,7 +198,7 @@ if [ 1 -eq 1 ]
 then
 xpnam --delta="
 &NAMDIM
-  NPROMA=-32,
+  NPROMA=-1784,
 /
 " --inplace fort.4
 fi
@@ -225,17 +224,16 @@ unset INPART
 unset PERSISTENT
 unset PARALLEL
 
-#if [ "x$K" = "x0" ]
-#then
-#  export INPART=0
-#  export PERSISTENT=0
-#  export PARALLEL=0
-#elif [ "x$K" = "x1" ]
-#then
+if [ "x$K" = "x0" ]
+then
+  export INPART=0
+  export PERSISTENT=0
+  export PARALLEL=0
+else
   export INPART=1
   export PERSISTENT=1
   export PARALLEL=1
-#fi
+fi
 
 
 pack=$PACK
@@ -244,13 +242,15 @@ BIN=$pack/bin/MASTERODB
 
 \rm -f lparallelmethod.txt
 
-if [ "x$K" = "x1" ]
+if [ "x$K" = "x0" ]
 then
+echo
+else
 export LPARALLELMETHOD_VERBOSE=1
 cat -> lparallelmethod.txt << EOF
 OpenMPSingleColumn APL_ARPEGE_SHALLOW_CONVECTION_AND_TURBULENCE_PARALLEL:1
 OpenMPSingleColumn APL_ARPEGE_DPRECIPS_PARALLEL:0
-#penMPSingleColumn APL_ARPEGE_PARALLEL:15
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:15
 EOF
 
 cat lparallelmethod.txt
@@ -271,7 +271,7 @@ cd ..
 done
 
 
-diffNODE.001_01 --gpnorms '*' 0/NODE.001_01 1/NODE.001_01
+diffNODE.001_01 --gpnorms '*' 1/NODE.001_01 2/NODE.001_01
 
 pwd > /home/gmap/mrpm/marguina/pack/48t3_cpg_drv+.01.MIMPIIFC1805.2y/pwd.txt 
 

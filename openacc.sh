@@ -17,7 +17,8 @@ do
   echo "==> $f <=="
   dir=$(dirname $f)
   mkdir -p src/local/ifsaux/openacc/$dir
-  /home/gmap/mrpm/marguina/fxtran-acdc/bin/openacc.pl src/local/$f src/local/ifsaux/openacc/$dir
+  /home/gmap/mrpm/marguina/fxtran-acdc/bin/openacc.pl \
+   --only-if-newer --drhook --dir src/local/ifsaux/openacc/$dir src/local/$f
 done
 
 
