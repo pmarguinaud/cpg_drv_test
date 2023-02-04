@@ -5,6 +5,33 @@ use strict;
 my $fc = '/home/gmap/mrpm/khatib/public/bin/mimpifc-18.0.5.274';
 
 my @f1 = qw (
+aplpar_init.F90
+aplpar_init_openacc.F90
+checkmv.F90
+checknan.F90
+compiler_features.F90
+cpg_dia_flu.F90
+cpg_drv.F90
+cpg.F90
+cpg_gp_hyd.F90
+cpxfu.F90
+cuadjtq.F90
+cuascn.F90
+cubasen.F90
+cuddrafn.F90
+cudlfsn.F90
+cududv.F90
+cuinin.F90
+gpgeo_expl.F90
+
+sigam.F90
+sitnu.F90
+suehdf.F90
+sugfl1.F90
+suorog.F90
+suspeca.F90
+vegtype_grid_to_patch_grid.F90
+
 suozon.F90
 suozon_openacc.F90
 ppwetpoint.F90
@@ -140,32 +167,6 @@ apl_arpege_dprecips_parallel.F90
 apl_arpege_precipitation.F90
 apl_arpege_precipitation_parallel.F90
 
-aplpar_init.F90
-aplpar_init_openacc.F90
-checkmv.F90
-checknan.F90
-compiler_features.F90
-cpg_dia_flu.F90
-cpg_drv.F90
-cpg.F90
-cpg_gp_hyd.F90
-cpxfu.F90
-cuadjtq.F90
-cuascn.F90
-cubasen.F90
-cuddrafn.F90
-cudlfsn.F90
-cududv.F90
-cuinin.F90
-gpgeo_expl.F90
-
-sigam.F90
-sitnu.F90
-suehdf.F90
-sugfl1.F90
-suorog.F90
-suspeca.F90
-vegtype_grid_to_patch_grid.F90
 );
 
 
