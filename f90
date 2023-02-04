@@ -5,6 +5,11 @@ use strict;
 my $fc = '/home/gmap/mrpm/khatib/public/bin/mimpifc-18.0.5.274';
 
 my @f1 = qw (
+acevadcape.F90
+acevadcape_openacc.F90
+acevolet.F90
+acevolet_openacc.F90
+
 acdrag.F90
 acdrag_openacc.F90
 acdrme.F90
@@ -28,10 +33,6 @@ acctnd0.F90
 acctnd0_parallel.F90
 acdnshf.F90
 acdnshf_openacc.F90
-acevadcape.F90
-acevadcape_openacc.F90
-acevolet.F90
-acevolet_openacc.F90
 achmt.F90
 achmtls.F90
 achmtls_openacc.F90
