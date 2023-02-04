@@ -2,7 +2,7 @@
 #SBATCH --export=NONE
 #SBATCH --job-name=arp
 #SBATCH --nodes=1
-#SBATCH --time=00:05:00
+#SBATCH --time=00:15:00
 #SBATCH --exclusive
 #SBATCH --verbose
 #SBATCH --no-requeue
@@ -43,6 +43,7 @@ mkdir -p $TMPDIR
 cd $TMPDIR
 
 
+#for K in 0 1 2
 for K in 0 1 2
 do
 
@@ -110,7 +111,7 @@ STOP=6
 xpnam --delta="
 &NAMRIP
 ! CSTOP='h$STOP',
-  CSTOP='t20',
+  CSTOP='t2',
   TSTEP=240,
 /
 &NAMARG
@@ -224,18 +225,6 @@ unset INPART
 unset PERSISTENT
 unset PARALLEL
 
-if [ "x$K" = "x0" ]
-then
-  export INPART=0
-  export PERSISTENT=0
-  export PARALLEL=0
-else
-  export INPART=1
-  export PERSISTENT=1
-  export PARALLEL=1
-fi
-
-
 pack=$PACK
 
 BIN=$pack/bin/MASTERODB
@@ -244,22 +233,81 @@ BIN=$pack/bin/MASTERODB
 
 if [ "x$K" = "x0" ]
 then
-echo
-else
-export LPARALLELMETHOD_VERBOSE=1
-cat -> lparallelmethod.txt << EOF
-OpenMPSingleColumn APL_ARPEGE_SHALLOW_CONVECTION_AND_TURBULENCE_PARALLEL:1
+  export INPART=0
+  export PERSISTENT=0
+  export PARALLEL=0
+elif [ "x$K" = "x1" ]
+then
+  export INPART=1
+  export PERSISTENT=1
+  export PARALLEL=1
+elif [ "x$K" = "x2" ]
+then
+  export INPART=1
+  export PERSISTENT=1
+  export PARALLEL=1
+  export LPARALLELMETHOD_VERBOSE=1
+  cat -> lparallelmethod.txt << EOF
 OpenMPSingleColumn APL_ARPEGE_DPRECIPS_PARALLEL:0
-OpenMPSingleColumn APL_ARPEGE_PARALLEL:15
+OpenMPSingleColumn APL_ARPEGE_INIT_PARALLEL:0
+OpenMPSingleColumn APL_ARPEGE_INIT_PARALLEL:1
+OpenMPSingleColumn APL_ARPEGE_INIT_PARALLEL:2
+OpenMPSingleColumn APL_ARPEGE_INIT_PARALLEL:3
+OpenMPSingleColumn APL_ARPEGE_INIT_PARALLEL:4
+OpenMPSingleColumn APL_ARPEGE_INIT_PARALLEL:5
+OpenMPSingleColumn APL_ARPEGE_INIT_PARALLEL:6
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:ACCLPH
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:ACDRAG
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:ACDRME
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:ACEVADCAPE
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:ACHMT
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:ACHMTLS
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:ACSOL
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:ACTQSAT
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:ACVISIH
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:APLPAR_INIT
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:CPPHINP
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:DIFTQ
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:EDR
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:FRSOPT
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:PLSM
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:PPWETPOINT
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:QNGCOR
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:ZBAY_QRCONV
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:ZDE2MR
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:ZDPHIV
+OpenMPSingleColumn APL_ARPEGE_PARALLEL:ZRDG_LCVQ
+OpenMPSingleColumn APL_ARPEGE_SHALLOW_CONVECTION_AND_TURBULENCE_PARALLEL:1
+OpenMPSingleColumn MF_PHYS_BAYRAD_PARALLEL:BAYRAD
+OpenMPSingleColumn MF_PHYS_FPL_PART1_PARALLEL:0
+OpenMPSingleColumn MF_PHYS_FPL_PART2_PARALLEL:0
+OpenMPSingleColumn MF_PHYS_MOCON_PARALLEL:PPWETPOINT
+OpenMPSingleColumn MF_PHYS_PRECIPS_PARALLEL:EDR
+OpenMPSingleColumn MF_PHYS_SAVE_PHSURF_PART1_PARALLEL:0
+OpenMPSingleColumn MF_PHYS_SAVE_PHSURF_PART2_PARALLEL:0
 EOF
 
 cat lparallelmethod.txt
 
 fi
 
+
+if [ 1 -eq 1 ]
+then
+#xport MPIAUTOCONFIG=mpiauto.DDT.conf
+#xport MPIAUTOCONFIG=mpiauto.VALGRIND.conf
+
+#xport FOR_ALLOCATE_INIT=NAN
+
 /opt/softs/mpiauto/mpiauto --verbose --wrap --wrap-stdeo --nouse-slurm-mpi --prefix-mpirun '/usr/bin/time -f "time=%e"' \
     --nnp $NTASK_FC --nn $NNODE_FC --openmp $NOPMP_FC -- $BIN \
  -- --nnp $NTASK_IO --nn $NNODE_IO --openmp $NOPMP_IO -- $BIN 
+else
+
+export OMP_NUM_THREADS=1
+gdb $BIN
+
+fi
 
 
 
@@ -271,6 +319,7 @@ cd ..
 done
 
 
+diffNODE.001_01 --gpnorms '*' 0/NODE.001_01 1/NODE.001_01
 diffNODE.001_01 --gpnorms '*' 1/NODE.001_01 2/NODE.001_01
 
 pwd > /home/gmap/mrpm/marguina/pack/48t3_cpg_drv+.01.MIMPIIFC1805.2y/pwd.txt 
