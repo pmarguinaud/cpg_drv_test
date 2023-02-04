@@ -5,6 +5,9 @@ use strict;
 my $fc = '/home/gmap/mrpm/khatib/public/bin/mimpifc-18.0.5.274';
 
 my @f1 = qw (
+acctnd0.F90
+acctnd0_parallel.F90
+
 apl_arpege_precipitation.F90
 apl_arpege_precipitation_parallel.F90
 
@@ -162,9 +165,6 @@ actke_openacc.F90
 );
 
 my @f0 = qw (
-acctnd0.F90
-acctnd0_parallel.F90
-
 apl_arpege_dprecips.F90
 apl_arpege_dprecips_parallel.F90
 
