@@ -5,6 +5,18 @@ use strict;
 my $fc = '/home/gmap/mrpm/khatib/public/bin/mimpifc-18.0.5.274';
 
 my @f1 = qw (
+apl_arpege_hydro_budget.F90
+apl_arpege_hydro_budget_parallel.F90
+apl_arpege_init.F90
+apl_arpege_init_parallel.F90
+apl_arpege_init_surfex.F90
+apl_arpege_init_surfex_parallel.F90
+apl_arpege_oceanic_fluxes.F90
+apl_arpege_oceanic_fluxes_parallel.F90
+apl_arpege.F90
+apl_arpege_parallel.F90
+
+
 apl_arpege_aerosols_for_radiation.F90
 apl_arpege_aerosols_for_radiation_parallel.F90
 apl_arpege_albedo_computation.F90
@@ -86,16 +98,6 @@ acctnd0_parallel.F90
 
 apl_arpege_dprecips.F90
 apl_arpege_dprecips_parallel.F90
-apl_arpege_hydro_budget.F90
-apl_arpege_hydro_budget_parallel.F90
-apl_arpege_init.F90
-apl_arpege_init_parallel.F90
-apl_arpege_init_surfex.F90
-apl_arpege_init_surfex_parallel.F90
-apl_arpege_oceanic_fluxes.F90
-apl_arpege_oceanic_fluxes_parallel.F90
-apl_arpege.F90
-apl_arpege_parallel.F90
 apl_arpege_precipitation.F90
 apl_arpege_precipitation_parallel.F90
 
