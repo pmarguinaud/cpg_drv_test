@@ -13,6 +13,9 @@ accldia_openacc.F90
 acclph.F90
 acclph_openacc.F90
 
+actke.F90
+actke_openacc.F90
+
 );
 
 my @f0 = qw (
@@ -42,8 +45,6 @@ acsol.F90
 acsol_openacc.F90
 acsolw.F90
 acsolw_openacc.F90
-actke.F90
-actke_openacc.F90
 actqsat.F90
 actqsat_openacc.F90
 acturb.F90
