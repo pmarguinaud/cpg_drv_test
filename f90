@@ -5,6 +5,17 @@ use strict;
 my $fc = '/home/gmap/mrpm/khatib/public/bin/mimpifc-18.0.5.274';
 
 my @f1 = qw (
+apl_arpege_aerosols_for_radiation.F90
+apl_arpege_aerosols_for_radiation_parallel.F90
+apl_arpege_albedo_computation.F90
+apl_arpege_albedo_computation_parallel.F90
+apl_arpege_atmosphere_update.F90
+apl_arpege_atmosphere_update_parallel.F90
+apl_arpege_cloudiness.F90
+apl_arpege_cloudiness_parallel.F90
+apl_arpege_deep_convection.F90
+apl_arpege_deep_convection_parallel.F90
+
 apl_arpege_radiation.F90
 apl_arpege_radiation_parallel.F90
 apl_arpege_shallow_convection_and_turbulence.F90
@@ -72,16 +83,7 @@ actke_openacc.F90
 my @f0 = qw (
 acctnd0.F90
 acctnd0_parallel.F90
-apl_arpege_aerosols_for_radiation.F90
-apl_arpege_aerosols_for_radiation_parallel.F90
-apl_arpege_albedo_computation.F90
-apl_arpege_albedo_computation_parallel.F90
-apl_arpege_atmosphere_update.F90
-apl_arpege_atmosphere_update_parallel.F90
-apl_arpege_cloudiness.F90
-apl_arpege_cloudiness_parallel.F90
-apl_arpege_deep_convection.F90
-apl_arpege_deep_convection_parallel.F90
+
 apl_arpege_dprecips.F90
 apl_arpege_dprecips_parallel.F90
 apl_arpege_hydro_budget.F90
